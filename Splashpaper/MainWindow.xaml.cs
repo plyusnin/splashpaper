@@ -12,4 +12,10 @@ public partial class MainWindow : Window
 
 		DataContext = new MainViewModel();
 	}
+
+	private void TrayIcon_OnClick(object? Sender, EventArgs e)
+	{
+		WindowState = WindowState.Normal;
+		Activate();
+	}
 }

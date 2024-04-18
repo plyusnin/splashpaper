@@ -4,10 +4,15 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:Splashpaper.ViewModels"
+        xmlns:systemTray="clr-namespace:Chapter.Net.WPF.SystemTray;assembly=Chapter.Net.WPF.SystemTray"
         mc:Ignorable="d"
+        ResizeMode="CanMinimize"
         Title="MainWindow" Height="450" Width="800" d:DataContext="{d:DesignInstance viewModels:MainViewModel}">
     <Grid>
         <Button Content="Do your job!" Command="{Binding Update}"
                 VerticalAlignment="Center" HorizontalAlignment="Center" />
     </Grid>
+    <systemTray:Tray.TrayIcon>
+        <systemTray:TrayIcon Icon="Splashpaper.exe" Click="TrayIcon_OnClick" MinimizeToTray="True" />
+    </systemTray:Tray.TrayIcon>
 </Window>

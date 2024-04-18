@@ -4,10 +4,12 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Reactive;
+using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
 using UnsplashSharp;
 using UnsplashSharp.Models;
 using UnsplashSharp.Models.Enums;
+using Windows.Foundation;
 using Windows.UI;
 using Windows.UI.ViewManagement;
 
@@ -36,10 +38,19 @@ public class MainViewModel : ReactiveObject
 		Update = ReactiveCommand.CreateFromTask(UpdateWallpaper);
 
 		_uiSettings = new UISettings();
-		var colorValue = _uiSettings.GetColorValue(UIColorType.Background);
-		var isLightTheme = IsColorLight(colorValue);
 
-		_uiSettings.ColorValuesChanged += (sender, args) => Task.Run(() => UpdateWallpaper());
+		new[]
+			{
+				Observable.Interval(TimeSpan.FromMinutes(30)),
+				Observable.FromEventPattern<TypedEventHandler<UISettings, object>, object>(
+					           h => _uiSettings.ColorValuesChanged += h,
+					           h => _uiSettings.ColorValuesChanged -= h)
+				          .Select(_ => 0L)
+			}
+		   .Merge()
+		   .Select(_ => Observable.StartAsync(UpdateWallpaper))
+		   .Switch()
+		   .Subscribe();
 	}
 
 	private async Task UpdateWallpaper(CancellationToken cancellation = default)

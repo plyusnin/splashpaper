@@ -6,9 +6,11 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UseWPF>true</UseWPF>
+        <ApplicationIcon>icon.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Chapter.Net.WPF.SystemTray" Version="1.1.0" />
       <PackageReference Include="KsWare.Windows.Display" Version="0.1.0" />
       <PackageReference Include="ReactiveUI.WPF" Version="19.6.1" />
       <PackageReference Include="System.Interactive" Version="6.0.1" />
