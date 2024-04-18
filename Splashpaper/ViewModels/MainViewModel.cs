@@ -8,13 +8,22 @@ using System.Runtime.CompilerServices;
 using UnsplashSharp;
 using UnsplashSharp.Models;
 using UnsplashSharp.Models.Enums;
+using Windows.UI;
+using Windows.UI.ViewManagement;
 
 namespace Splashpaper.ViewModels;
 
 public class MainViewModel : ReactiveObject
 {
+	// From https://learn.microsoft.com/en-us/windows/apps/desktop/modernize/apply-windows-themes?WT.mc_id=DT-MVP-5003978#know-when-dark-mode-is-enabled
+	private static bool IsColorLight(Color clr)
+	{
+		return 5 * clr.G + 2 * clr.R + clr.B > 8 * 128;
+	}
+
 	private readonly HttpClient _httpClient;
 	private readonly UnsplashService _unsplashService;
+	private readonly UISettings _uiSettings;
 
 	public ReactiveCommand<Unit, Unit> Update { get; }
 
@@ -25,13 +34,23 @@ public class MainViewModel : ReactiveObject
 		_unsplashService = new UnsplashService("oNDd__hajD3C6ud3MGnvCFp6oOWed9xUe6CTFNLfZHo");
 
 		Update = ReactiveCommand.CreateFromTask(UpdateWallpaper);
+
+		_uiSettings = new UISettings();
+		var colorValue = _uiSettings.GetColorValue(UIColorType.Background);
+		var isLightTheme = IsColorLight(colorValue);
+
+		_uiSettings.ColorValuesChanged += (sender, args) => Task.Run(() => UpdateWallpaper());
 	}
 
-	private async Task UpdateWallpaper(CancellationToken cancellation)
+	private async Task UpdateWallpaper(CancellationToken cancellation = default)
 	{
 		var screenSize = DisplayInfo.Displays.MaxBy(d => d.Bounds.Width * d.Bounds.Height)!.Bounds.Size;
 
-		var picture = await GetRandomPhotosAsync(cancellation)
+		var isLightTheme = IsColorLight(_uiSettings.GetColorValue(UIColorType.Background));
+
+		var query = isLightTheme ? null : "dim";
+
+		var picture = await GetRandomPhotosAsync(query, cancellation)
 		                   .Where(ph => ph.Width >= screenSize.Width && ph.Height >= screenSize.Height)
 		                   .FirstAsync(cancellation);
 
@@ -51,11 +70,11 @@ public class MainViewModel : ReactiveObject
 		}
 	}
 
-	private async IAsyncEnumerable<Photo> GetRandomPhotosAsync([EnumeratorCancellation] CancellationToken cancellation)
+	private async IAsyncEnumerable<Photo> GetRandomPhotosAsync(string? query, [EnumeratorCancellation] CancellationToken cancellation)
 	{
 		while (!cancellation.IsCancellationRequested)
 		{
-			var photos = await _unsplashService.GetRandomPhotosAsync(10, orientation: Orientation.Landscape);
+			var photos = await _unsplashService.GetRandomPhotosAsync(10, query: query, orientation: Orientation.Landscape);
 			foreach (var photo in photos)
 			{
 				yield return photo;
