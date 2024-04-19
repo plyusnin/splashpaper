@@ -21,6 +21,8 @@ public class WallpaperInfoViewModel
 
 	public ReactiveCommand<Unit, Unit> OpenAuthorPage { get; }
 
+	public DateTime? Date { get; init; }
+
 	public WallpaperInfoViewModel()
 	{
 		OpenPhoto = ReactiveCommand.Create(OpenPhotoImpl);

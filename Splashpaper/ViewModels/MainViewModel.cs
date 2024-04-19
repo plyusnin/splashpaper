@@ -93,6 +93,7 @@ public class MainViewModel : ReactiveObject
 			{
 				Title = picture.Description ?? picture.AltDescription ?? picture.Id,
 				Author = picture.User.Name,
+				Date = picture.CreatedAt,
 				Url = picture.Links.Html,
 				AuthorUrl = picture.User.Links.Html,
 				Locaton = picture.Location.Name

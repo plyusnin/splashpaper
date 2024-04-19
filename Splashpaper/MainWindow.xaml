@@ -34,13 +34,12 @@
                         </Style>
                     </ContextMenu.Resources>
                     <MenuItem Header="Next wallpaper" Command="{Binding Update}" />
-                    <Separator />
-                    <MenuItem DataContext="{Binding CurrentWallpaper}" Header="{Binding Title}"
-                              Command="{Binding OpenPhoto}" />
                     <MenuItem DataContext="{Binding CurrentWallpaper}" Header="{Binding Locaton}"
-                              Command="{Binding OpenPhoto}" />
-                    <MenuItem DataContext="{Binding CurrentWallpaper}" Header="{Binding Author}"
-                              Command="{Binding OpenAuthorPage}" />
+                              Command="{Binding OpenPhoto}">
+                        <MenuItem Header="{Binding Title}" Command="{Binding OpenPhoto}" />
+                        <MenuItem Header="{Binding Date, StringFormat=d}" Command="{Binding OpenPhoto}" />
+                        <MenuItem Header="{Binding Author}" Command="{Binding OpenAuthorPage}" />
+                    </MenuItem>
                     <Separator />
                     <MenuItem Header="Exit" Command="ApplicationCommands.Close" />
                 </ContextMenu>
