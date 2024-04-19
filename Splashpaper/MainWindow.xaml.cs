@@ -1,5 +1,6 @@
 ﻿using Splashpaper.ViewModels;
 using System.Windows;
+using System.Windows.Input;
 
 namespace Splashpaper;
 
@@ -17,5 +18,10 @@ public partial class MainWindow : Window
 	{
 		WindowState = WindowState.Normal;
 		Activate();
+	}
+
+	private void CloseCommand_OnExecuted(object Sender, ExecutedRoutedEventArgs E)
+	{
+		Close();
 	}
 }

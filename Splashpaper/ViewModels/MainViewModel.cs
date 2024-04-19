@@ -24,8 +24,16 @@ public class MainViewModel : ReactiveObject
 	}
 
 	private readonly HttpClient _httpClient;
-	private readonly UnsplashService _unsplashService;
 	private readonly UISettings _uiSettings;
+	private readonly UnsplashService _unsplashService;
+
+	private WallpaperInfoViewModel? _currentWallpaper;
+
+	public WallpaperInfoViewModel? CurrentWallpaper
+	{
+		get => _currentWallpaper;
+		set => this.RaiseAndSetIfChanged(ref _currentWallpaper, value);
+	}
 
 	public ReactiveCommand<Unit, Unit> Update { get; }
 
@@ -78,6 +86,15 @@ public class MainViewModel : ReactiveObject
 			}
 
 			NativeMethods.SetWallpaper(picturePath);
+
+			CurrentWallpaper = new WallpaperInfoViewModel
+			{
+				Title = picture.Description ?? picture.AltDescription ?? picture.Id,
+				Author = picture.User.Name,
+				Url = picture.Links.Html,
+				AuthorUrl = picture.User.Links.Html,
+				Locaton = picture.Location.Name
+			};
 		}
 	}
 

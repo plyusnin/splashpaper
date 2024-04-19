@@ -7,12 +7,44 @@
         xmlns:systemTray="clr-namespace:Chapter.Net.WPF.SystemTray;assembly=Chapter.Net.WPF.SystemTray"
         mc:Ignorable="d"
         ResizeMode="CanMinimize"
-        Title="MainWindow" Height="450" Width="800" d:DataContext="{d:DesignInstance viewModels:MainViewModel}">
-    <Grid>
-        <Button Content="Do your job!" Command="{Binding Update}"
+        Title="Splashpaper"
+        SizeToContent="WidthAndHeight"
+        d:DataContext="{d:DesignInstance viewModels:MainViewModel}">
+    <Window.CommandBindings>
+        <CommandBinding Command="Close" Executed="CloseCommand_OnExecuted" />
+    </Window.CommandBindings>
+    <StackPanel Margin="8">
+        <TextBlock Text="{Binding CurrentWallpaper.Title}" FontSize="14" TextWrapping="Wrap" Margin="4" />
+        <TextBlock Text="{Binding CurrentWallpaper.Locaton}" FontSize="12" TextWrapping="Wrap" Margin="4" />
+        <Button Content="Update wallpaper" Command="{Binding Update}" Margin="4"
+                Padding="8,4"
                 VerticalAlignment="Center" HorizontalAlignment="Center" />
-    </Grid>
+    </StackPanel>
     <systemTray:Tray.TrayIcon>
-        <systemTray:TrayIcon Icon="Splashpaper.exe" Click="TrayIcon_OnClick" MinimizeToTray="True" />
+        <systemTray:TrayIcon Icon="Splashpaper.exe" Click="TrayIcon_OnClick" MinimizeToTray="True">
+            <systemTray:TrayIcon.ContextMenu>
+                <ContextMenu>
+                    <ContextMenu.Resources>
+                        <Style TargetType="{x:Type MenuItem}">
+                            <Style.Triggers>
+                                <Trigger Property="Header" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ContextMenu.Resources>
+                    <MenuItem Header="Next wallpaper" Command="{Binding Update}" />
+                    <Separator />
+                    <MenuItem DataContext="{Binding CurrentWallpaper}" Header="{Binding Title}"
+                              Command="{Binding OpenPhoto}" />
+                    <MenuItem DataContext="{Binding CurrentWallpaper}" Header="{Binding Locaton}"
+                              Command="{Binding OpenPhoto}" />
+                    <MenuItem DataContext="{Binding CurrentWallpaper}" Header="{Binding Author}"
+                              Command="{Binding OpenAuthorPage}" />
+                    <Separator />
+                    <MenuItem Header="Exit" Command="ApplicationCommands.Close" />
+                </ContextMenu>
+            </systemTray:TrayIcon.ContextMenu>
+        </systemTray:TrayIcon>
     </systemTray:Tray.TrayIcon>
 </Window>
