@@ -30,6 +30,7 @@ public class MainViewModel : ReactiveObject
 	private readonly UnsplashService _unsplashService;
 
 	private WallpaperInfoViewModel? _currentWallpaper;
+	private string _wallpapersDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Wallpapers");
 
 	public WallpaperInfoViewModel? CurrentWallpaper
 	{
@@ -58,7 +59,7 @@ public class MainViewModel : ReactiveObject
 				          .Select(_ => 0L)
 			}
 		   .Merge()
-		   .Select(_ => Observable.StartAsync(UpdateWallpaper))
+		   .Select(_ => Observable.StartAsync(UpdateWallpaper).Retry(3))
 		   .Switch()
 		   .Subscribe();
 	}
@@ -78,9 +79,8 @@ public class MainViewModel : ReactiveObject
 		var response = await _httpClient.GetAsync(picture.Urls.Full, cancellation);
 		if (response.StatusCode == HttpStatusCode.OK)
 		{
-			var wallpapersDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Wallpapers");
-			Directory.CreateDirectory(wallpapersDirectory);
-			var picturePath = Path.Combine(wallpapersDirectory, $"{picture.Id}.jpg");
+			Directory.CreateDirectory(_wallpapersDirectory);
+			var picturePath = Path.Combine(_wallpapersDirectory, $"{picture.Id}.jpg");
 			await using (var fileStream = File.OpenWrite(picturePath))
 			{
 				await using var stream = await response.Content.ReadAsStreamAsync(cancellation);
@@ -99,6 +99,8 @@ public class MainViewModel : ReactiveObject
 				Locaton = picture.Location.Name
 			};
 		}
+
+		CleanupWallpaperDirectory();
 	}
 
 	private async ValueTask<PictureTone> CheckPictureToneAsync(Photo Photo, CancellationToken cancellation)
@@ -140,6 +142,26 @@ public class MainViewModel : ReactiveObject
 			foreach (var photo in photos)
 			{
 				yield return photo;
+			}
+		}
+	}
+
+	private void CleanupWallpaperDirectory()
+	{
+		var deadline = DateTime.Now.AddDays(-3);
+		var files = Directory.EnumerateFiles(_wallpapersDirectory);
+		foreach (var file in files)
+		{
+			if (File.GetCreationTime(file) < deadline)
+			{
+				try
+				{
+					File.Delete(file);
+				}
+				catch (Exception e)
+				{
+					Debug.WriteLine(e.Message);
+				}
 			}
 		}
 	}
