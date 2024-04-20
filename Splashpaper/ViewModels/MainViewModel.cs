@@ -29,13 +29,22 @@ public class MainViewModel : ReactiveObject
 	private readonly UISettings _uiSettings;
 	private readonly UnsplashService _unsplashService;
 
+	private readonly string _wallpapersDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Wallpapers");
+
 	private WallpaperInfoViewModel? _currentWallpaper;
-	private string _wallpapersDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Wallpapers");
+
+	private string _topics;
 
 	public WallpaperInfoViewModel? CurrentWallpaper
 	{
 		get => _currentWallpaper;
-		set => this.RaiseAndSetIfChanged(ref _currentWallpaper, value);
+		private set => this.RaiseAndSetIfChanged(ref _currentWallpaper, value);
+	}
+
+	public string Topics
+	{
+		get => _topics;
+		set => this.RaiseAndSetIfChanged(ref _topics, value);
 	}
 
 	public ReactiveCommand<Unit, Unit> Update { get; }
@@ -43,12 +52,12 @@ public class MainViewModel : ReactiveObject
 	public MainViewModel()
 	{
 		_httpClient = new HttpClient();
-
+		_uiSettings = new UISettings();
 		_unsplashService = new UnsplashService("oNDd__hajD3C6ud3MGnvCFp6oOWed9xUe6CTFNLfZHo");
 
-		Update = ReactiveCommand.CreateFromTask(UpdateWallpaper);
+		_topics = "wallpapers, travel, textures-patterns, animals";
 
-		_uiSettings = new UISettings();
+		Update = ReactiveCommand.CreateFromTask(UpdateWallpaper);
 
 		new[]
 			{
@@ -136,9 +145,17 @@ public class MainViewModel : ReactiveObject
 
 	private async IAsyncEnumerable<Photo> GetRandomPhotosAsync(string? query, [EnumeratorCancellation] CancellationToken cancellation)
 	{
+		var topicsss = await _unsplashService.GetTopicsAsync(orderBy: TopicOrderBy.Featured);
+
+		// var topics = _topics.Split([Environment.NewLine, ",", ";"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+		//                     .Where(topic => !string.IsNullOrWhiteSpace(topic))
+		//                     .ToArray();
+
+		var topics = topicsss.Take(1).Select(t => t.Id).ToArray();
+
 		while (!cancellation.IsCancellationRequested)
 		{
-			var photos = await _unsplashService.GetRandomPhotosAsync(10, query: query, orientation: Orientation.Landscape);
+			var photos = await _unsplashService.GetRandomPhotosAsync(10, topics: topics, orientation: Orientation.Landscape);
 			foreach (var photo in photos)
 			{
 				yield return photo;
@@ -149,19 +166,18 @@ public class MainViewModel : ReactiveObject
 	private void CleanupWallpaperDirectory()
 	{
 		var deadline = DateTime.Now.AddDays(-3);
-		var files = Directory.EnumerateFiles(_wallpapersDirectory);
-		foreach (var file in files)
+		var files = Directory.EnumerateFiles(_wallpapersDirectory)
+		                     .OrderByDescending(File.GetCreationTime);
+
+		foreach (var file in files.Skip(10))
 		{
-			if (File.GetCreationTime(file) < deadline)
+			try
 			{
-				try
-				{
-					File.Delete(file);
-				}
-				catch (Exception e)
-				{
-					Debug.WriteLine(e.Message);
-				}
+				File.Delete(file);
+			}
+			catch (Exception e)
+			{
+				Debug.WriteLine(e.Message);
 			}
 		}
 	}

@@ -8,17 +8,20 @@
         mc:Ignorable="d"
         ResizeMode="CanMinimize"
         Title="Splashpaper"
-        SizeToContent="WidthAndHeight"
+        Width="500"
+        SizeToContent="Height"
         d:DataContext="{d:DesignInstance viewModels:MainViewModel}">
     <Window.CommandBindings>
         <CommandBinding Command="Close" Executed="CloseCommand_OnExecuted" />
     </Window.CommandBindings>
     <StackPanel Margin="8">
+        <TextBlock Text="Topics:" Margin="4" />
+        <TextBox Padding="4,2" Text="{Binding Topics}" Margin="4,4,4,16" TextWrapping="Wrap" />
         <TextBlock Text="{Binding CurrentWallpaper.Title}" FontSize="14" TextWrapping="Wrap" Margin="4" />
-        <TextBlock Text="{Binding CurrentWallpaper.Locaton}" FontSize="12" TextWrapping="Wrap" Margin="4" />
+        <TextBlock Text="{Binding CurrentWallpaper.Locaton}" FontSize="12" TextWrapping="Wrap" Margin="4,4,4,16" />
         <Button Content="Update wallpaper" Command="{Binding Update}" Margin="4"
                 Padding="8,4"
-                VerticalAlignment="Center" HorizontalAlignment="Center" />
+                HorizontalAlignment="Center" />
     </StackPanel>
     <systemTray:Tray.TrayIcon>
         <systemTray:TrayIcon Icon="Splashpaper.exe" Click="TrayIcon_OnClick" MinimizeToTray="True">
