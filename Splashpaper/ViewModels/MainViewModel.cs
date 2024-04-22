@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using UnsplashSharp;
 using UnsplashSharp.Models;
 using UnsplashSharp.Models.Enums;
@@ -33,6 +34,8 @@ public class MainViewModel : ReactiveObject
 
 	private WallpaperInfoViewModel? _currentWallpaper;
 
+	private double _themeThreshold = 0.30;
+
 	private string _topics;
 
 	public WallpaperInfoViewModel? CurrentWallpaper
@@ -47,7 +50,15 @@ public class MainViewModel : ReactiveObject
 		set => this.RaiseAndSetIfChanged(ref _topics, value);
 	}
 
+	public double ThemeThreshold
+	{
+		get => _themeThreshold;
+		set => this.RaiseAndSetIfChanged(ref _themeThreshold, value);
+	}
+
 	public ReactiveCommand<Unit, Unit> Update { get; }
+
+	public ReactiveCommand<Unit, Unit> Exit { get; }
 
 	public MainViewModel()
 	{
@@ -58,6 +69,7 @@ public class MainViewModel : ReactiveObject
 		_topics = "wallpapers, travel, textures-patterns, animals";
 
 		Update = ReactiveCommand.CreateFromTask(UpdateWallpaper);
+		Exit = ReactiveCommand.Create(() => Application.Current.Shutdown());
 
 		new[]
 			{
@@ -136,11 +148,9 @@ public class MainViewModel : ReactiveObject
 		var tone = totalBrightness / (double)pixelCount;
 		Debug.WriteLine($"Tone: {tone:F1}");
 
-		return tone switch
-		{
-			> 90 => PictureTone.Bright,
-			_ => PictureTone.Dark
-		};
+		return tone > ThemeThreshold * 256
+			? PictureTone.Bright
+			: PictureTone.Dark;
 	}
 
 	private async IAsyncEnumerable<Photo> GetRandomPhotosAsync(string? query, [EnumeratorCancellation] CancellationToken cancellation)
@@ -165,7 +175,6 @@ public class MainViewModel : ReactiveObject
 
 	private void CleanupWallpaperDirectory()
 	{
-		var deadline = DateTime.Now.AddDays(-3);
 		var files = Directory.EnumerateFiles(_wallpapersDirectory)
 		                     .OrderByDescending(File.GetCreationTime);
 

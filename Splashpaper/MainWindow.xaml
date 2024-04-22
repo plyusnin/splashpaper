@@ -11,12 +11,14 @@
         Width="500"
         SizeToContent="Height"
         d:DataContext="{d:DesignInstance viewModels:MainViewModel}">
-    <Window.CommandBindings>
-        <CommandBinding Command="Close" Executed="CloseCommand_OnExecuted" />
-    </Window.CommandBindings>
     <StackPanel Margin="8">
         <TextBlock Text="Topics:" Margin="4" />
         <TextBox Padding="4,2" Text="{Binding Topics}" Margin="4,4,4,16" TextWrapping="Wrap" />
+        <TextBlock Margin="4">
+            <Run Text="Light/Dark threshold:" />
+            <Run Text="{Binding ThemeThreshold, Mode=OneWay, StringFormat=P0}" />
+        </TextBlock>
+        <Slider Padding="4,2" Minimum="0.10" Maximum="0.90" Value="{Binding ThemeThreshold}" TickFrequency="0.05" />
         <TextBlock Text="{Binding CurrentWallpaper.Title}" FontSize="14" TextWrapping="Wrap" Margin="4" />
         <TextBlock Text="{Binding CurrentWallpaper.Locaton}" FontSize="12" TextWrapping="Wrap" Margin="4,4,4,16" />
         <Button Content="Update wallpaper" Command="{Binding Update}" Margin="4"
@@ -44,7 +46,7 @@
                         <MenuItem Header="{Binding Author}" Command="{Binding OpenAuthorPage}" />
                     </MenuItem>
                     <Separator />
-                    <MenuItem Header="Exit" Command="ApplicationCommands.Close" />
+                    <MenuItem Header="Exit" Command="{Binding Exit}" />
                 </ContextMenu>
             </systemTray:TrayIcon.ContextMenu>
         </systemTray:TrayIcon>
