@@ -10,18 +10,47 @@
         Width="500"
         SizeToContent="Height"
         d:DataContext="{d:DesignInstance viewModels:MainViewModel}">
-    <StackPanel Margin="8">
-        <TextBlock Text="Topics:" Margin="4" />
-        <TextBox Padding="4,2" Text="{Binding Topics}" Margin="4,4,4,16" TextWrapping="Wrap" />
-        <TextBlock Margin="4">
+    <Grid Margin="8">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Topics:" Margin="4" />
+        <TextBox Grid.Row="0" Grid.Column="1" Padding="4,2" Text="{Binding Topics}" Margin="4,4,4,16"
+                 TextWrapping="Wrap" />
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Margin="4" VerticalAlignment="Center">
             <Run Text="Light/Dark threshold:" />
-            <Run Text="{Binding ThemeThreshold, Mode=OneWay, StringFormat=P0}" />
+            <Run Text="{Binding ThemeThreshold, Mode=OneWay, StringFormat=P0}" FontWeight="SemiBold" />
         </TextBlock>
-        <Slider Padding="4,2" Minimum="0.10" Maximum="0.90" Value="{Binding ThemeThreshold}" TickFrequency="0.05" />
-        <TextBlock Text="{Binding CurrentWallpaper.Title}" FontSize="14" TextWrapping="Wrap" Margin="4" />
-        <TextBlock Text="{Binding CurrentWallpaper.Location}" FontSize="12" TextWrapping="Wrap" Margin="4,4,4,16" />
-        <Button Content="Update wallpaper" Command="{Binding Update}" Margin="4"
+        <Slider Grid.Row="1" Grid.Column="1" Padding="4,2" VerticalAlignment="Center"
+                Minimum="0.10" Maximum="0.90" TickFrequency="0.05" IsSnapToTickEnabled="True"
+                Value="{Binding ThemeThreshold}" />
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Margin="4" VerticalAlignment="Center">
+            <Run Text="Update Interval:" />
+            <Run Text="{Binding UpdateIntervalMin, Mode=OneWay, StringFormat=F0}" FontWeight="SemiBold" />
+            <Run Text="min." FontWeight="SemiBold" />
+        </TextBlock>
+        <Slider Grid.Row="2" Grid.Column="1" Padding="4,2"
+                Minimum="5" Maximum="180" TickFrequency="5" IsSnapToTickEnabled="True"
+                Value="{Binding UpdateIntervalMin}" />
+
+        <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding CurrentWallpaper.Title}"
+                   FontSize="14" TextWrapping="Wrap" Margin="4" />
+        <TextBlock Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding CurrentWallpaper.Location}"
+                   FontSize="12" TextWrapping="Wrap" Margin="4,4,4,16" />
+        <Button Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Content="Update wallpaper" Command="{Binding Update}"
+                Margin="4"
                 Padding="8,4"
                 HorizontalAlignment="Center" />
-    </StackPanel>
+    </Grid>
 </Window>

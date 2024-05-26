@@ -20,8 +20,6 @@ namespace Splashpaper.ViewModels;
 
 public class MainViewModel : ReactiveObject
 {
-	private readonly IWindowFactory _windowFactory;
-
 	// From https://learn.microsoft.com/en-us/windows/apps/desktop/modernize/apply-windows-themes?WT.mc_id=DT-MVP-5003978#know-when-dark-mode-is-enabled
 	private static PictureTone GetColorTone(Color clr)
 	{
@@ -33,12 +31,15 @@ public class MainViewModel : ReactiveObject
 	private readonly UnsplashService _unsplashService;
 
 	private readonly string _wallpapersDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Wallpapers");
+	private readonly IWindowFactory _windowFactory;
 
 	private WallpaperInfoViewModel? _currentWallpaper;
 
 	private double _themeThreshold = 0.20;
 
 	private string _topics;
+
+	private double _updateIntervalMin = 30;
 
 	public WallpaperInfoViewModel? CurrentWallpaper
 	{
@@ -56,6 +57,12 @@ public class MainViewModel : ReactiveObject
 	{
 		get => _themeThreshold;
 		set => this.RaiseAndSetIfChanged(ref _themeThreshold, value);
+	}
+
+	public double UpdateIntervalMin
+	{
+		get => _updateIntervalMin;
+		set => this.RaiseAndSetIfChanged(ref _updateIntervalMin, value);
 	}
 
 	public ReactiveCommand<Unit, Unit> Show { get; }
@@ -79,7 +86,9 @@ public class MainViewModel : ReactiveObject
 
 		new[]
 			{
-				Update.StartWith(Unit.Default).Throttle(TimeSpan.FromMinutes(30)),
+				this.WhenAnyValue(x => x.UpdateIntervalMin)
+				    .Select(interval => Update.StartWith(Unit.Default).Throttle(TimeSpan.FromMinutes(interval)))
+				    .Switch(),
 				Observable.FromEventPattern<TypedEventHandler<UISettings, object>, object>(
 					           h => _uiSettings.ColorValuesChanged += h,
 					           h => _uiSettings.ColorValuesChanged -= h)
