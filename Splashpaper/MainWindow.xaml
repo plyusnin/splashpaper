@@ -4,7 +4,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:Splashpaper.ViewModels"
-        xmlns:systemTray="clr-namespace:Chapter.Net.WPF.SystemTray;assembly=Chapter.Net.WPF.SystemTray"
         mc:Ignorable="d"
         ResizeMode="CanMinimize"
         Title="Splashpaper"
@@ -20,35 +19,9 @@
         </TextBlock>
         <Slider Padding="4,2" Minimum="0.10" Maximum="0.90" Value="{Binding ThemeThreshold}" TickFrequency="0.05" />
         <TextBlock Text="{Binding CurrentWallpaper.Title}" FontSize="14" TextWrapping="Wrap" Margin="4" />
-        <TextBlock Text="{Binding CurrentWallpaper.Locaton}" FontSize="12" TextWrapping="Wrap" Margin="4,4,4,16" />
+        <TextBlock Text="{Binding CurrentWallpaper.Location}" FontSize="12" TextWrapping="Wrap" Margin="4,4,4,16" />
         <Button Content="Update wallpaper" Command="{Binding Update}" Margin="4"
                 Padding="8,4"
                 HorizontalAlignment="Center" />
     </StackPanel>
-    <systemTray:Tray.TrayIcon>
-        <systemTray:TrayIcon Icon="Splashpaper.exe" Click="TrayIcon_OnClick" MinimizeToTray="True">
-            <systemTray:TrayIcon.ContextMenu>
-                <ContextMenu>
-                    <ContextMenu.Resources>
-                        <Style TargetType="{x:Type MenuItem}">
-                            <Style.Triggers>
-                                <Trigger Property="Header" Value="{x:Null}">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ContextMenu.Resources>
-                    <MenuItem Header="Next wallpaper" Command="{Binding Update}" />
-                    <MenuItem DataContext="{Binding CurrentWallpaper}" Header="{Binding Locaton}"
-                              Command="{Binding OpenPhoto}">
-                        <MenuItem Header="{Binding Title}" Command="{Binding OpenPhoto}" />
-                        <MenuItem Header="{Binding Date, StringFormat=d}" Command="{Binding OpenPhoto}" />
-                        <MenuItem Header="{Binding Author}" Command="{Binding OpenAuthorPage}" />
-                    </MenuItem>
-                    <Separator />
-                    <MenuItem Header="Exit" Command="{Binding Exit}" />
-                </ContextMenu>
-            </systemTray:TrayIcon.ContextMenu>
-        </systemTray:TrayIcon>
-    </systemTray:Tray.TrayIcon>
 </Window>

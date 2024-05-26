@@ -20,6 +20,8 @@ namespace Splashpaper.ViewModels;
 
 public class MainViewModel : ReactiveObject
 {
+	private readonly IWindowFactory _windowFactory;
+
 	// From https://learn.microsoft.com/en-us/windows/apps/desktop/modernize/apply-windows-themes?WT.mc_id=DT-MVP-5003978#know-when-dark-mode-is-enabled
 	private static PictureTone GetColorTone(Color clr)
 	{
@@ -34,7 +36,7 @@ public class MainViewModel : ReactiveObject
 
 	private WallpaperInfoViewModel? _currentWallpaper;
 
-	private double _themeThreshold = 0.30;
+	private double _themeThreshold = 0.20;
 
 	private string _topics;
 
@@ -56,18 +58,22 @@ public class MainViewModel : ReactiveObject
 		set => this.RaiseAndSetIfChanged(ref _themeThreshold, value);
 	}
 
+	public ReactiveCommand<Unit, Unit> Show { get; }
+
 	public ReactiveCommand<Unit, Unit> Update { get; }
 
 	public ReactiveCommand<Unit, Unit> Exit { get; }
 
-	public MainViewModel()
+	public MainViewModel(IWindowFactory windowFactory)
 	{
+		_windowFactory = windowFactory;
 		_httpClient = new HttpClient();
 		_uiSettings = new UISettings();
 		_unsplashService = new UnsplashService("oNDd__hajD3C6ud3MGnvCFp6oOWed9xUe6CTFNLfZHo");
 
 		_topics = "wallpapers, travel, textures-patterns, animals";
 
+		Show = ReactiveCommand.CreateFromTask(ShowWindow);
 		Update = ReactiveCommand.CreateFromTask(UpdateWallpaper);
 		Exit = ReactiveCommand.Create(() => Application.Current.Shutdown());
 
@@ -83,6 +89,11 @@ public class MainViewModel : ReactiveObject
 		   .Select(_ => Observable.StartAsync(UpdateWallpaper).Retry(3))
 		   .Switch()
 		   .Subscribe();
+	}
+
+	private async Task ShowWindow()
+	{
+		await _windowFactory.ShowMainWindow(this);
 	}
 
 	private async Task UpdateWallpaper(CancellationToken cancellation = default)
@@ -117,7 +128,7 @@ public class MainViewModel : ReactiveObject
 				Date = picture.CreatedAt,
 				Url = picture.Links.Html,
 				AuthorUrl = picture.User.Links.Html,
-				Locaton = picture.Location.Name
+				Location = picture.Location.Name
 			};
 		}
 

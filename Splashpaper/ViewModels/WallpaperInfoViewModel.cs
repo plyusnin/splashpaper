@@ -11,7 +11,7 @@ public class WallpaperInfoViewModel
 
 	public required string Url { get; init; }
 
-	public string? Locaton { get; init; }
+	public string? Location { get; init; }
 
 	public ReactiveCommand<Unit, Unit> OpenPhoto { get; }
 
