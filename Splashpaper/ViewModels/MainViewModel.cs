@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using System.Windows;
 using UnsplashSharp;
 using UnsplashSharp.Models;
@@ -30,10 +31,12 @@ public class MainViewModel : ReactiveObject
 	private readonly UISettings _uiSettings;
 	private readonly UnsplashService _unsplashService;
 
-	private readonly string _wallpapersDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Wallpapers");
+	private static readonly string _wallpapersDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "Wallpapers");
+	private static readonly string _appdataDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Splashpaper");
+	private static readonly string _currentWallpaperInfoFile = Path.Combine(_appdataDirectory, "current_wallpaper.json");
 	private readonly IWindowFactory _windowFactory;
 
-	private WallpaperInfoViewModel? _currentWallpaper;
+	private readonly ObservableAsPropertyHelper<WallpaperInfoViewModel?> _currentWallpaper;
 
 	private double _themeThreshold = 0.20;
 
@@ -41,11 +44,7 @@ public class MainViewModel : ReactiveObject
 
 	private double _updateIntervalMin = 30;
 
-	public WallpaperInfoViewModel? CurrentWallpaper
-	{
-		get => _currentWallpaper;
-		private set => this.RaiseAndSetIfChanged(ref _currentWallpaper, value);
-	}
+	public WallpaperInfoViewModel? CurrentWallpaper => _currentWallpaper.Value;
 
 	public string Topics
 	{
@@ -67,7 +66,7 @@ public class MainViewModel : ReactiveObject
 
 	public ReactiveCommand<Unit, Unit> Show { get; }
 
-	public ReactiveCommand<Unit, Unit> Update { get; }
+	public ReactiveCommand<Unit, WallpaperInfoViewModel?> Update { get; }
 
 	public ReactiveCommand<Unit, Unit> Exit { get; }
 
@@ -77,6 +76,7 @@ public class MainViewModel : ReactiveObject
 		_httpClient = new HttpClient();
 		_uiSettings = new UISettings();
 		_unsplashService = new UnsplashService("oNDd__hajD3C6ud3MGnvCFp6oOWed9xUe6CTFNLfZHo");
+		Directory.CreateDirectory(_appdataDirectory);
 
 		_topics = "wallpapers, travel, textures-patterns, animals";
 
@@ -90,7 +90,7 @@ public class MainViewModel : ReactiveObject
 		new[]
 			{
 				this.WhenAnyValue(x => x.UpdateIntervalMin)
-				    .Select(interval => Update.StartWith(Unit.Default).Throttle(TimeSpan.FromMinutes(interval)))
+				    .Select(interval => Update.Select(_ => Unit.Default).StartWith(Unit.Default).Throttle(TimeSpan.FromMinutes(interval)))
 				    .Switch(),
 				Observable.FromEventPattern<TypedEventHandler<UISettings, object>, object>(
 					           h => _uiSettings.ColorValuesChanged += h,
@@ -99,6 +99,27 @@ public class MainViewModel : ReactiveObject
 			}
 		   .Merge()
 		   .InvokeCommand(Update);
+
+		Update.Do(SaveWallpaperInfo)
+		      .Merge(Observable.StartAsync(LoadWallpaperInfo))
+		      .ToProperty(this, x => x.CurrentWallpaper, out _currentWallpaper, scheduler: RxApp.MainThreadScheduler);
+	}
+
+	private async Task<WallpaperInfoViewModel?> LoadWallpaperInfo(CancellationToken cancellation)
+	{
+		if (!File.Exists(_currentWallpaperInfoFile))
+			return null;
+
+		var json = await File.ReadAllTextAsync(_currentWallpaperInfoFile, cancellation);
+		return JsonSerializer.Deserialize<WallpaperInfoViewModel>(json);
+	}
+
+	private void SaveWallpaperInfo(WallpaperInfoViewModel? wallpaperInfo)
+	{
+		if (wallpaperInfo is null)
+			File.Delete(_currentWallpaperInfoFile);
+
+		File.WriteAllText(_currentWallpaperInfoFile, JsonSerializer.Serialize(wallpaperInfo));
 	}
 
 	private async Task ShowWindow()
@@ -106,7 +127,7 @@ public class MainViewModel : ReactiveObject
 		await _windowFactory.ShowMainWindow(this);
 	}
 
-	private async Task UpdateWallpaper(CancellationToken cancellation = default)
+	private async Task<WallpaperInfoViewModel?> UpdateWallpaper(CancellationToken cancellation = default)
 	{
 		var screenSize = DisplayInfo.Displays.MaxBy(d => d.Bounds.Width * d.Bounds.Height)!.Bounds.Size;
 
@@ -118,6 +139,7 @@ public class MainViewModel : ReactiveObject
 		                   .WhereAwaitWithCancellation(async (ph, c) => await CheckPictureToneAsync(ph, c) == theme)
 		                   .FirstAsync(cancellation);
 
+		WallpaperInfoViewModel? wallpaperInfo = null;
 		var response = await _httpClient.GetAsync(picture.Urls.Full, cancellation);
 		if (response.StatusCode == HttpStatusCode.OK)
 		{
@@ -131,7 +153,7 @@ public class MainViewModel : ReactiveObject
 
 			NativeMethods.SetWallpaper(picturePath);
 
-			CurrentWallpaper = new WallpaperInfoViewModel
+			wallpaperInfo = new WallpaperInfoViewModel
 			{
 				Title = picture.Description ?? picture.AltDescription ?? picture.Id,
 				Author = picture.User.Name,
@@ -143,6 +165,7 @@ public class MainViewModel : ReactiveObject
 		}
 
 		CleanupWallpaperDirectory();
+		return wallpaperInfo;
 	}
 
 	private async ValueTask<PictureTone> CheckPictureToneAsync(Photo Photo, CancellationToken cancellation)

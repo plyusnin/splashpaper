@@ -18,7 +18,7 @@
                 </Style>
             </ContextMenu.Resources>
             <MenuItem Header="Next wallpaper" Command="{Binding Update}" />
-            <MenuItem DataContext="{Binding CurrentWallpaper}" Header="{Binding Title}"
+            <MenuItem DataContext="{Binding CurrentWallpaper}" Header="{Binding ShortTitle}"
                       Command="{Binding OpenPhoto}">
                 <MenuItem Header="{Binding Location}" Command="{Binding OpenPhoto}" />
                 <MenuItem Header="{Binding Date, StringFormat=d}" Command="{Binding OpenPhoto}" />

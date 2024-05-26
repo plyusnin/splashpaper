@@ -22,6 +22,18 @@ public class WallpaperInfoViewModel
 
 	public DateTime? Date { get; init; }
 
+	public string ShortTitle => (Title, Location) switch
+	{
+		// If title is short, just show the title
+		({ Length: < 20 }, null) => Title,
+		// If title is short and location is available, show both
+		({ Length: < 20 }, not null) => $"{Title} ({Location})",
+		// If title is long, but there is a location, show location
+		(_, not null) => Location!,
+		// If title is long and there is no location, cut title to first space after 20 characters
+		(_, null) => Title[..(Title.IndexOf(' ', 20) + 1)]
+	};
+
 	public WallpaperInfoViewModel()
 	{
 		OpenPhoto = ReactiveCommand.Create(OpenPhotoImpl);
