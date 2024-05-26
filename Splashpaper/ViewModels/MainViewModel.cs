@@ -79,16 +79,14 @@ public class MainViewModel : ReactiveObject
 
 		new[]
 			{
-				Observable.Interval(TimeSpan.FromMinutes(30)),
+				Update.StartWith(Unit.Default).Throttle(TimeSpan.FromMinutes(30)),
 				Observable.FromEventPattern<TypedEventHandler<UISettings, object>, object>(
 					           h => _uiSettings.ColorValuesChanged += h,
 					           h => _uiSettings.ColorValuesChanged -= h)
-				          .Select(_ => 0L)
+				          .Select(_ => Unit.Default)
 			}
 		   .Merge()
-		   .Select(_ => Observable.StartAsync(UpdateWallpaper).Retry(3))
-		   .Switch()
-		   .Subscribe();
+		   .InvokeCommand(Update);
 	}
 
 	private async Task ShowWindow()
