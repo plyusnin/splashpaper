@@ -84,6 +84,9 @@ public class MainViewModel : ReactiveObject
 		Update = ReactiveCommand.CreateFromTask(UpdateWallpaper);
 		Exit = ReactiveCommand.Create(() => Application.Current.Shutdown());
 
+		Update.ThrownExceptions
+		      .Subscribe(ex => _windowFactory.ShowMessageBox("Could not update a wallpaper", ex.Message));
+
 		new[]
 			{
 				this.WhenAnyValue(x => x.UpdateIntervalMin)

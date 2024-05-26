@@ -39,4 +39,10 @@ public partial class App : Application, IWindowFactory
 		await Observable.FromEventPattern(h => window.Closed += h, h => window.Closed -= h)
 		                .FirstAsync();
 	}
+
+	/// <inheritdoc />
+	public void ShowMessageBox(string title, string message)
+	{
+		MessageBox.Show(message, title);
+	}
 }
